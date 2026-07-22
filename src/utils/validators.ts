@@ -22,5 +22,9 @@ export function validateStatusUpdate(body: any): string[] {
     errors.push('comment');
   }
 
+  if (body.status && !isValidStatus(body.status)) {
+    errors.push('status');
+  }
+
   return errors;
 }
