@@ -17,3 +17,5 @@ app.use((_request, response) => {
 app.listen(port, () => {
   console.log(`Oxetech Helpdesk API running on http://localhost:${port}`);
 });
+
+export default app;

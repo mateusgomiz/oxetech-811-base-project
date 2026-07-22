@@ -58,6 +58,28 @@
       "assignedToId": "user_bruno",
       "createdAt": "2026-05-03T14:20:00.000Z",
       "updatedAt": "2026-05-04T09:00:00.000Z"
+    },
+    {
+      "id": "ticket_1784751496158_5616",
+      "title": "Ticket Teste Integração",
+      "description": "Descrição teste",
+      "category": "sistemas",
+      "requesterId": "user_ana",
+      "status": "open",
+      "priority": "high",
+      "createdAt": "2026-07-22T20:18:16.158Z",
+      "updatedAt": "2026-07-22T20:18:16.158Z"
+    },
+    {
+      "id": "ticket_1784751585353_5475",
+      "title": "Ticket Teste Integração",
+      "description": "Descrição teste",
+      "category": "sistemas",
+      "requesterId": "user_ana",
+      "status": "open",
+      "priority": "high",
+      "createdAt": "2026-07-22T20:19:45.352Z",
+      "updatedAt": "2026-07-22T20:19:45.352Z"
     }
   ],
   "comments": [
