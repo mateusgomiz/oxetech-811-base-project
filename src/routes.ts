@@ -5,6 +5,8 @@ import { Database, Ticket, TicketPriority, TicketStatus } from "./types";
 import { calculatePriority, generateId } from "./utils/helpers";
 import { isValidStatus, validateStatusUpdate } from "./utils/validators";
 
+import healthRoutes from "./routes/health";
+
 const router = Router();
 const dataFile = process.env.DATA_FILE || "data/db.json";
 const databasePath = path.resolve(process.cwd(), dataFile);
@@ -18,9 +20,7 @@ function writeDatabase(database: Database) {
   fs.writeFileSync(databasePath, JSON.stringify(database, null, 2));
 }
 
-router.get("/health", (_request, response) => {
-  response.json({ status: "ok", service: "oxetech-helpdesk" });
-});
+router.use("/health", healthRoutes);
 
 router.get("/users", (_request, response) => {
   const database = readDatabase();
