@@ -1,25 +1,28 @@
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { Database } from '../types';
 
 const dataFile = process.env.DATA_FILE || 'data/db.json';
 const databasePath = path.resolve(process.cwd(), dataFile);
 
-export async function readDatabase(): Promise<Database> {
+export function readDatabase(): Database {
   try {
-    const content = await fs.readFile(databasePath, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    if ((error as any).code === 'ENOENT') {
+    const content = fs.readFileSync(databasePath, 'utf-8');
+    return JSON.parse(content) as Database;
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
       return { users: [], tickets: [], comments: [] };
     }
-    
     throw error;
   }
 }
 
-export async function writeDatabase(database: Database): Promise<void> {
+export function writeDatabase(database: Database): void {
   const dir = path.dirname(databasePath);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(databasePath, JSON.stringify(database, null, 2));
+  
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  
+  fs.writeFileSync(databasePath, JSON.stringify(database, null, 2));
 }

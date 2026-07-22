@@ -2,15 +2,9 @@ import { Router } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { Database } from "../types";
+import { readDatabase } from "../utils/database";
 
 const router = Router();
-const dataFile = process.env.DATA_FILE || "data/db.json";
-const databasePath = path.resolve(process.cwd(), dataFile);
-
-function readDatabase(): Database {
-  const content = fs.readFileSync(databasePath, "utf-8");
-  return JSON.parse(content) as Database;
-}
 
 router.get("/", (_request, response) => {
   try {
