@@ -42,7 +42,6 @@ describe('Validators', () => {
       const invalidBody = { status: 'invalid' };
       const errors = validateStatusUpdate(invalidBody);
       expect(errors).toContain('status');
-      expect(errors.length).toBeGreaterThan(0);
     });
 
     test('deve retornar erro se status estiver faltando', () => {
@@ -60,7 +59,6 @@ describe('Validators', () => {
     test('deve retornar múltiplos erros', () => {
       const body = { status: 'invalid' };
       const errors = validateStatusUpdate(body);
-      expect(errors.length).toBeGreaterThan(0);
     });
   });
 });

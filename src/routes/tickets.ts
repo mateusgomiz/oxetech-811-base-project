@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Ticket } from "../types";
 import { calculatePriority, generateId } from "../utils/helpers";
-import { isValidStatus, validateStatusUpdate } from "../utils/validators";
+import { validateStatusUpdate } from "../utils/validators";
 import { readDatabase, writeDatabase } from "../utils/database";
 
 const router = Router();
@@ -126,52 +126,63 @@ router.post("/", (request, response) => {
 });
 
 router.patch("/:id/status", (request, response) => {
-  const database = readDatabase();
+  try {
+    const database = readDatabase();
 
-  const ticket = database.tickets.find(
-    (item) => item.id === request.params.id
-  );
+    const ticket = database.tickets.find(
+      (item) => item.id === request.params.id
+    );
 
-  if (!ticket) {
-    return response.status(404).json({
-      message: "Ticket nao encontrado",
-    });
+    if (!ticket) {
+      return response.status(404).json({
+        message: "Ticket nao encontrado",
+      });
+    }
+
+    const errors = validateStatusUpdate(request.body);
+
+    if (errors.length > 0) {
+      // Verifica se o erro é sobre comentário
+      if (errors.includes('comment')) {
+        return response.status(400).json({
+          message: "Comentário obrigatório para fechar chamado",
+        });
+      }
+
+      if (errors.includes('status')) {
+        return response.status(400).json({
+          message: "Status inválido",
+          allowed: ["open", "in_progress", "resolved", "closed"],
+        });
+      }
+
+      return response.status(400).json({
+        message: "Dados inválidos",
+        fields: errors,
+      });
+    }
+
+    const { status, comment, authorId } = request.body;
+
+    ticket.status = status;
+    ticket.updatedAt = new Date().toISOString();
+
+    if (comment) {
+      database.comments.push({
+        id: generateId("comment"),
+        ticketId: ticket.id,
+        authorId: authorId || ticket.requesterId,
+        message: comment,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    writeDatabase(database);
+
+    return response.json(ticket);
+  } catch (error: any) {
+    response.status(500).json({ error: error.message });
   }
-
-  const errors = validateStatusUpdate(request.body);
-
-  if (errors.length > 0) {
-    return response.status(400).json({
-      message: "Dados invalidos",
-      fields: errors,
-    });
-  }
-
-  const { status, comment, authorId } = request.body;
-
-  if (!isValidStatus(status)) {
-    return response.status(400).json({
-      message: "Status invalido",
-      allowed: ["open", "in_progress", "resolved", "closed"],
-    });
-  }
-
-  ticket.status = status;
-  ticket.updatedAt = new Date().toISOString();
-
-  if (comment) {
-    database.comments.push({
-      id: generateId("comment"),
-      ticketId: ticket.id,
-      authorId: authorId || ticket.requesterId,
-      message: comment,
-      createdAt: new Date().toISOString(),
-    });
-  }
-
-  writeDatabase(database);
-
-  return response.json(ticket);
 });
 
 router.post("/:id/comments", (request, response) => {

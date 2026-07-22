@@ -26,5 +26,10 @@ export function validateStatusUpdate(body: any): string[] {
     errors.push('status');
   }
 
+  if (body.status === 'closed' && !body.comment) {
+    errors.push('comment');
+  }
+
+  
   return errors;
 }
