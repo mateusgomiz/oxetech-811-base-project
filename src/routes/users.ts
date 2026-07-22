@@ -1,7 +1,4 @@
 import { Router } from "express";
-import fs from "node:fs";
-import path from "node:path";
-import { Database } from "../types";
 import { readDatabase } from "../utils/database";
 
 const router = Router();
