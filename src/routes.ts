@@ -2,10 +2,11 @@ import { Router } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { Database, Ticket, TicketPriority, TicketStatus } from "./types";
-import { calculatePriority, generateId } from "./utils/helpers";
+import { calculatePriority, generateId, getCurrentTimestamp } from "./utils/helpers";
 import { isValidStatus, validateStatusUpdate } from "./utils/validators";
 
 import healthRoutes from "./routes/health";
+import usersRoutes from "./routes/users";
 
 const router = Router();
 const dataFile = process.env.DATA_FILE || "data/db.json";
@@ -19,14 +20,9 @@ function readDatabase(): Database {
 function writeDatabase(database: Database) {
   fs.writeFileSync(databasePath, JSON.stringify(database, null, 2));
 }
-
 router.use("/health", healthRoutes);
 
-router.get("/users", (_request, response) => {
-  const database = readDatabase();
-
-  response.json(database.users);
-});
+router.use("/users", usersRoutes);
 
 router.get("/tickets", (request, response) => {
   const database = readDatabase();
@@ -127,7 +123,7 @@ router.post("/tickets", (request, response) => {
     return;
   }
 
-  const now = new Date().toISOString();
+  const now = getCurrentTimestamp();
   const ticket: Ticket = {
     id: generateId("ticket"),
     title: body.title,
