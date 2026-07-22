@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Database, Ticket, TicketPriority, TicketStatus } from "./types";
 import { calculatePriority, generateId } from "./utils/helpers";
+import { isValidStatus, validateStatusUpdate } from "./utils/validators";
 
 const router = Router();
 const dataFile = process.env.DATA_FILE || "data/db.json";
@@ -148,39 +149,51 @@ router.post("/tickets", (request, response) => {
 
 router.patch("/tickets/:id/status", (request, response) => {
   const database = readDatabase();
-  const ticket = database.tickets.find((item) => item.id === request.params.id);
-  const newStatus = request.body.status as TicketStatus;
+
+  const ticket = database.tickets.find(
+    (item) => item.id === request.params.id
+  );
 
   if (!ticket) {
-    response.status(404).json({ message: "Ticket nao encontrado" });
-    return;
+    return response.status(404).json({
+      message: "Ticket nao encontrado",
+    });
   }
 
-  if (!["open", "in_progress", "resolved", "closed"].includes(newStatus)) {
-    response.status(400).json({ message: "Status invalido", allowed: ["open", "in_progress", "resolved", "closed"] });
-    return;
+  const errors = validateStatusUpdate(request.body);
+
+  if (errors.length > 0) {
+    return response.status(400).json({
+      message: "Dados invalidos",
+      fields: errors,
+    });
   }
 
-  if (newStatus === "closed" && !request.body.comment) {
-    response.status(400).json({ message: "Informe um comentario para fechar o chamado" });
-    return;
+  const { status, comment, authorId } = request.body;
+
+  if (!isValidStatus(status)) {
+    return response.status(400).json({
+      message: "Status invalido",
+      allowed: ["open", "in_progress", "resolved", "closed"],
+    });
   }
 
-  ticket.status = newStatus;
+  ticket.status = status;
   ticket.updatedAt = new Date().toISOString();
 
-  if (request.body.comment) {
+  if (comment) {
     database.comments.push({
       id: generateId("comment"),
       ticketId: ticket.id,
-      authorId: request.body.authorId || ticket.requesterId,
-      message: request.body.comment,
+      authorId: authorId || ticket.requesterId,
+      message: comment,
       createdAt: new Date().toISOString(),
     });
   }
 
   writeDatabase(database);
-  response.json(ticket);
+
+  return response.json(ticket);
 });
 
 router.post("/tickets/:id/comments", (request, response) => {
